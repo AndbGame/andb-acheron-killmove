@@ -190,11 +190,12 @@ Idle Function getKillMoveIdle(Int LWeaponType, Int RWeaponType, Idle[] Exclude, 
 	;Killmoves[] = (Game.GetFormFromFile(0x832, "Update.esm") As Idle); pa_KillMoveShieldBashSlash - ???
 	fCnt -= 1
 	bCnt -= 1
-
-	if(backPreffered)
-		return RandomAnim(bKillmoves, fKillmoves, bCnt, fCnt)
+	Log("getKillMoveIdle fKillmoves[" + fCnt + "]: " + fKillmoves)
+	Log("getKillMoveIdle bKillmoves[" + bCnt + "]: " + bKillmoves)
+	If(backPreffered)
+		Return RandomAnim(bKillmoves, fKillmoves, bCnt, fCnt)
 	Else
-		return RandomAnim(fKillmoves, bKillmoves, fCnt, bCnt)
+		Return RandomAnim(fKillmoves, bKillmoves, fCnt, bCnt)
 	EndIf
 EndFunction
 
@@ -202,9 +203,11 @@ Idle Function RandomAnim(Idle[] firstKillmoves, Idle[] secondKillmoves, Int fCnt
 	Idle anim = None
 	If(fCnt >= 0)
 		anim = firstKillmoves[Utility.RandomInt(0,fCnt)]
+		Log("RandomAnim first: " + anim)
 	EndIf
 	If (anim == None && sCnt >= 0)
 		anim = secondKillmoves[Utility.RandomInt(0,sCnt)]
+		Log("RandomAnim second: " + anim)
 	EndIf
 	Return anim
 EndFunction
@@ -230,17 +233,16 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 
 	bool isBack
 	Float Fangle = (Source.GetHeadingAngle(Target))
-	If ((Fangle < 110) && (Fangle > -110)) ; Returns FALSE for a hit in the back
-		isBack = False
-	Else
+	If ((Fangle < 110) && (Fangle > -110))
 		isBack = True
+	Else
+		isBack = False
 	Endif
 
 	;Utility.Wait(1)
 	Idle[] Exclude = new Idle[5]
 	Int Attempts
 	Bool Succes = False
-	Idle TheKillmove
 	Attempts = 50
 
 	Idle Killmove = getKillMoveIdle(Source.GetEquippedItemType(0), Source.GetEquippedItemType(1), Exclude, isBack)
@@ -254,12 +256,18 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	
 	While (!Succes && (Attempts > 0))
 		Attempts -= 1
-		If TheKillmove && Source.PlayIdleWithTarget(Killmove, Target) ; Bleedout kill
+		If Killmove && Source.PlayIdleWithTarget(Killmove, Target)
+			Debug.Notification("KillMove: <" + Killmove.GetName() + ">")
 			Succes = True
 		Endif
 	EndWhile
 	
 	If !Succes
+		If(Killmove == None)
+			Debug.Notification("KillMove: <NONE> Failed.")
+		Else
+			Debug.Notification("KillMove: <" + Killmove.GetName() + "> Failed."); .GetFormID()
+		EndIf
 		Log("KillMove animation failed. Fallback")
 		Float HP = Target.GetActorValue("Health")
 		Target.DamageActorValue("Health", HP - 1.0)
