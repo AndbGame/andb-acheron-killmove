@@ -22,18 +22,7 @@ Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)
 EndEvent
 
 Function reInit()
-	If(Acheron.HasOption(OptionSelfID))
-		if(!Acheron.RemoveOption(OptionSelfID))
-			Log("Error on remove '" + OptionSelfID + "'.")
-		Else
-			Acheron.UnregisterForHunterPrideSelect(self)
-		EndIf
-	EndIf
-	If(Acheron.HasOption(OptionFollowerID))
-		if(!Acheron.RemoveOption(OptionFollowerID))
-			Log("Error on remove '" + OptionFollowerID + "'.")
-		EndIf
-	EndIf
+	deInit()
 
 	If(!Acheron.HasOption(OptionSelfID))
     	; Register option
@@ -55,6 +44,21 @@ Function reInit()
 			Log("Error on register '" + OptionSelfID + "'.")
     	EndIf
   	EndIf
+EndFunction
+
+Function deInit()
+	Acheron.UnregisterForHunterPrideSelect(self)
+
+	If(Acheron.HasOption(OptionSelfID))
+		if(!Acheron.RemoveOption(OptionSelfID))
+			Log("Error on remove '" + OptionSelfID + "'.")
+		EndIf
+	EndIf
+	If(Acheron.HasOption(OptionFollowerID))
+		if(!Acheron.RemoveOption(OptionFollowerID))
+			Log("Error on remove '" + OptionFollowerID + "'.")
+		EndIf
+	EndIf
 EndFunction
 
 Idle Function getKillMoveIdle(Int LWeaponType, Int RWeaponType, Idle[] Exclude, bool backPreffered = false)
@@ -232,11 +236,11 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	Endif
 
 	bool isBack
-	Float Fangle = (Source.GetHeadingAngle(Target))
+	Float Fangle = (Target.GetHeadingAngle(Source))
 	If ((Fangle < 110) && (Fangle > -110))
-		isBack = True
-	Else
 		isBack = False
+	Else
+		isBack = True
 	Endif
 
 	;Utility.Wait(1)
@@ -252,7 +256,7 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 		testPIdle = ""
 	EndIf
 
-	Log("Kill Target: " + Target + "; Source: " + Source + "; isBack: " + isBack + "; anim: " + Killmove)
+	Log("Kill Target: " + Target + "; Source: " + Source + "; Angle: " + Fangle + "; isBack: " + isBack + "; anim: " + Killmove)
 	
 	While (!Succes && (Attempts > 0))
 		Attempts -= 1

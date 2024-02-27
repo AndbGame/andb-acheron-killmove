@@ -38,8 +38,9 @@ Quest __temp = self as Quest
 andb_acheron_killmove kmyQuest = __temp as andb_acheron_killmove
 ;END AUTOCAST
 ;BEGIN CODE
-kmyQuest.Log("stage 10")
+kmyQuest.Log("stage 10: reInit")
 kmyQuest.reInit()
+Reset()
 ;END CODE
 EndFunction
 ;END FRAGMENT
@@ -51,7 +52,9 @@ Quest __temp = self as Quest
 andb_acheron_killmove kmyQuest = __temp as andb_acheron_killmove
 ;END AUTOCAST
 ;BEGIN CODE
-kmyQuest.Log("stage 20")
+kmyQuest.Log("stage 20: deInit")
+kmyQuest.deInit()
+Reset()
 ;END CODE
 EndFunction
 ;END FRAGMENT
