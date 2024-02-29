@@ -2,6 +2,8 @@ Scriptname andb_acheron_killmove extends Quest
 
 String Property OptionFollowerID = "andb_acheron_killmove_follower" AutoReadonly
 String Property OptionSelfID = "andb_acheron_killmove_self" AutoReadonly
+
+andb_acheron_killmove_ally_1 Property killmoveAlly1Quest Auto
 String Property testPIdle Auto
 
 Event OnInit()
@@ -18,6 +20,50 @@ Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)
 		If (!VicActorBase.IsEssential() && !VicActorBase.IsProtected())
 			KillMove(akTarget, Source, true)
 		EndIf
+	EndIf
+
+	If (aiOptionID == Acheron.GetOptionID(OptionFollowerID))
+
+		If(!killmoveAlly1Quest.IsStopped())
+			killmoveAlly1Quest.Stop()
+		EndIf
+
+		If (akTarget == None || akTarget.IsChild())
+			return
+		EndIf
+		ActorBase VicActorBase = akTarget.GetLeveledActorBase()
+		If (VicActorBase.IsEssential() || VicActorBase.IsProtected())
+			return
+		EndIf
+
+		Int Attempts = 10
+		Bool Succes = False
+		While (!Succes && (Attempts > 0))
+			Attempts -= 1
+			If killmoveAlly1Quest.IsStopped()
+				Succes = True
+			Else
+				Utility.Wait(0.5)
+			Endif
+		EndWhile
+
+		If Succes
+			killmoveAlly1Quest.Start()
+			Attempts = 10
+			Succes = False
+			While (!Succes && (Attempts > 0))
+				Attempts -= 1
+				If killmoveAlly1Quest.IsRunning()
+					Succes = True
+				Else
+					Utility.Wait(0.5)
+				Endif
+			EndWhile
+			If Succes
+				killmoveAlly1Quest.killTarget(akTarget)
+			EndIf
+		EndIf
+
 	EndIf
 EndEvent
 
@@ -223,6 +269,25 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 		testPIdle = ""
 	EndIf
 
+	Int Attempts
+	
+    If(!IsPlayer)
+		If(Target.GetDistance(Source) > 128)
+			Source.MoveTo(Target, 60 * Math.cos(Target.Z), 60 * Math.sin(Target.Z), 0.0, false)
+			Attempts = 10
+			While(attempts > 0)
+				Attempts = Attempts - 1
+				if (!Source.Is3DLoaded()) 
+					Log("!Is3DLoaded")
+					Utility.Wait(0.1)
+				Else
+					Attempts = 0
+				endif
+			EndWhile
+		EndIf
+		Target.EnableAI(false)
+	EndIf
+
 	Float zOffset = Source.GetHeadingAngle(Target)
 	Source.SetAngle(0.0, 0.0, Source.GetAngleZ() + zOffset)
 	Utility.Wait(0.5)
@@ -245,7 +310,6 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 
 	;Utility.Wait(1)
 	Idle[] Exclude = new Idle[5]
-	Int Attempts
 	Bool Succes = False
 	Attempts = 50
 
@@ -261,17 +325,17 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	While (!Succes && (Attempts > 0))
 		Attempts -= 1
 		If Killmove && Source.PlayIdleWithTarget(Killmove, Target)
-			Debug.Notification("KillMove: <" + Killmove.GetName() + ">")
+			;Debug.Notification("KillMove: <" + Killmove.GetName() + ">")
 			Succes = True
 		Endif
 	EndWhile
 	
 	If !Succes
-		If(Killmove == None)
-			Debug.Notification("KillMove: <NONE> Failed.")
-		Else
-			Debug.Notification("KillMove: <" + Killmove.GetName() + "> Failed."); .GetFormID()
-		EndIf
+		;If(Killmove == None)
+		;	Debug.Notification("KillMove: <NONE> Failed.")
+		;Else
+		;	Debug.Notification("KillMove: <" + Killmove.GetName() + "> Failed."); .GetFormID()
+		;EndIf
 		Log("KillMove animation failed. Fallback")
 		Float HP = Target.GetActorValue("Health")
 		Target.DamageActorValue("Health", HP - 1.0)
@@ -284,6 +348,12 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 			Utility.Wait(0.5)
 		EndWhile
 	Endif
+
+	If(!IsPlayer)
+		Target.EnableAI(true)
+		Debug.SendAnimationEvent(Source, "IdleForceDefaultState")
+		Source.EvaluatePackage()
+	EndIf
 
 EndFunction
 
