@@ -25,8 +25,7 @@ EndFunction
 
 Event OnUpdate()
 	UnregisterForUpdate()
-	GotoState("")
-	Stop()
+	setStage(110)
 EndEvent
 
 State Started
@@ -46,6 +45,6 @@ State ApproachStarted
 		If(Target && Ally && Target.is3DLoaded() && Ally.is3DLoaded() && Ally.GetDistance(Target) < 500)
 			killmoveQuest.KillMove(Target as Actor, Ally as Actor, false)
 		EndIf
-		Stop()
+		setStage(110)
 	EndFunction
 EndState

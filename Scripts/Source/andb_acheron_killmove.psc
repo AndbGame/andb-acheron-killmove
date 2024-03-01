@@ -3,6 +3,7 @@ Scriptname andb_acheron_killmove extends Quest
 String Property OptionFollowerID = "andb_acheron_killmove_follower" AutoReadonly
 String Property OptionSelfID = "andb_acheron_killmove_self" AutoReadonly
 
+Package Property blankPackage Auto
 andb_acheron_killmove_ally_1 Property killmoveAlly1Quest Auto
 String Property testPIdle Auto
 
@@ -272,6 +273,9 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	Int Attempts
 	
     If(!IsPlayer)
+		;ActorUtil.AddPackageOverride(Source, blankPackage, 100, 1)
+        ;Source.EvaluatePackage()
+        ;Source.SetDontMove(True)
 		If(Target.GetDistance(Source) > 128)
 			Source.MoveTo(Target, 60 * Math.cos(Target.Z), 60 * Math.sin(Target.Z), 0.0, false)
 			Attempts = 10
@@ -279,19 +283,23 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 				Attempts = Attempts - 1
 				if (!Source.Is3DLoaded()) 
 					Log("!Is3DLoaded")
-					Utility.Wait(0.1)
+					Utility.Wait(0.2)
 				Else
 					Attempts = 0
 				endif
 			EndWhile
 		EndIf
-		Target.EnableAI(false)
+		;Utility.Wait(3)
 	EndIf
+	
+	;ActorUtil.AddPackageOverride(Target, blankPackage, 100, 1)
+	;Target.EvaluatePackage()
+	;Target.SetDontMove(True)
 
 	Float zOffset = Source.GetHeadingAngle(Target)
 	Source.SetAngle(0.0, 0.0, Source.GetAngleZ() + zOffset)
 	Utility.Wait(0.5)
-	If !Source.IsWeaponDrawn()
+	If IsPlayer && !Source.IsWeaponDrawn()
 		Source.DrawWeapon()
 		Float i = 3.0
 		While (!Source.IsWeaponDrawn() && (i > 0.0))
@@ -308,25 +316,32 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 		isBack = True
 	Endif
 
+	Int LWeaponType = Source.GetEquippedItemType(0)
+	Int RWeaponType = Source.GetEquippedItemType(1)
+
 	;Utility.Wait(1)
 	Idle[] Exclude = new Idle[5]
 	Bool Succes = False
-	Attempts = 50
+	Attempts = 20
 
-	Idle Killmove = getKillMoveIdle(Source.GetEquippedItemType(0), Source.GetEquippedItemType(1), Exclude, isBack)
+	Idle Killmove = getKillMoveIdle(LWeaponType, RWeaponType, Exclude, isBack)
 
 	If(testPIdle != "")
 		Killmove = (Game.GetFormFromFile(HexStrToInt(testPIdle), "Skyrim.esm") As Idle)
 		testPIdle = ""
 	EndIf
 
-	Log("Kill Target: " + Target + "; Source: " + Source + "; Angle: " + Fangle + "; isBack: " + isBack + "; anim: " + Killmove)
+	Log("Kill Target: " + Target + "; Source: " + Source + "(Lw-Rw: " + LWeaponType + "-" + RWeaponType + ")" + "; Angle: " + Fangle + "; isBack: " + isBack + "; anim: " + Killmove)
 	
 	While (!Succes && (Attempts > 0))
 		Attempts -= 1
 		If Killmove && Source.PlayIdleWithTarget(Killmove, Target)
 			;Debug.Notification("KillMove: <" + Killmove.GetName() + ">")
 			Succes = True
+			If(!IsPlayer)
+				Utility.Wait(5)
+			EndIf
+			Log("KillMove animation success after " + (50-Attempts) + " attempts")
 		Endif
 	EndWhile
 	
@@ -350,9 +365,10 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	Endif
 
 	If(!IsPlayer)
-		Target.EnableAI(true)
+        ;ActorUtil.RemovePackageOverride(Source, blankPackage)
+        ;Source.EvaluatePackage()
+        ;Source.SetDontMove(False)
 		Debug.SendAnimationEvent(Source, "IdleForceDefaultState")
-		Source.EvaluatePackage()
 	EndIf
 
 EndFunction

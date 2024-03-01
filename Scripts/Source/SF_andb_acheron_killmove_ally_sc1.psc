@@ -5,7 +5,7 @@ Scriptname SF_andb_acheron_killmove_ally_sc1 Extends Scene Hidden
 ;BEGIN FRAGMENT Fragment_2
 Function Fragment_2()
 ;BEGIN CODE
-;
+Debug.Trace("SF_andb_acheron_killmove_ally_sc1 Fragment_1 Scene Start")
 ;END CODE
 EndFunction
 ;END FRAGMENT
@@ -21,7 +21,7 @@ EndFunction
 ;BEGIN FRAGMENT Fragment_1
 Function Fragment_1()
 ;BEGIN CODE
-;Debug.Trace("SF_andb_acheron_killmove_ally_sc1 Fragment_1 Scene End")
+Debug.Trace("SF_andb_acheron_killmove_ally_sc1 Fragment_1 Scene End")
 ;END CODE
 EndFunction
 ;END FRAGMENT

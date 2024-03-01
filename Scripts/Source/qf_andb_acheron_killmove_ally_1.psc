@@ -38,7 +38,7 @@ Quest __temp = self as Quest
 andb_acheron_killmove_ally_1 kmyQuest = __temp as andb_acheron_killmove_ally_1
 ;END AUTOCAST
 ;BEGIN CODE
-kmyQuest.killmoveQuest.Log("killmove_ally_1: stage 20; Scene Start Approach")
+kmyQuest.killmoveQuest.Log("killmove_ally_1: stage 20; Start Approach")
 kmyQuest.ApproachStarted()
 ;END CODE
 EndFunction
@@ -51,8 +51,21 @@ Quest __temp = self as Quest
 andb_acheron_killmove_ally_1 kmyQuest = __temp as andb_acheron_killmove_ally_1
 ;END AUTOCAST
 ;BEGIN CODE
-kmyQuest.killmoveQuest.Log("killmove_ally_1: stage 100; Scene Start kill")
+kmyQuest.killmoveQuest.Log("killmove_ally_1: stage 100; Start kill")
 kmyQuest.readyForKill()
+;END CODE
+EndFunction
+;END FRAGMENT
+
+;BEGIN FRAGMENT Fragment_110
+Function Fragment_110()
+;BEGIN AUTOCAST TYPE andb_acheron_killmove_ally_1
+Quest __temp = self as Quest
+andb_acheron_killmove_ally_1 kmyQuest = __temp as andb_acheron_killmove_ally_1
+;END AUTOCAST
+;BEGIN CODE
+kmyQuest.killmoveQuest.Log("killmove_ally_1: stage 100; done kill")
+kmyQuest.Stop()
 ;END CODE
 EndFunction
 ;END FRAGMENT

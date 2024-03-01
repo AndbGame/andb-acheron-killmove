@@ -19,7 +19,7 @@ kmyQuest.Log("stage 0")
 EndFunction
 ;END FRAGMENT
 
-;BEGIN FRAGMENT Fragment_0
+;BEGIN FRAGMENT Fragment_1
 Function Fragment_1()
 ;BEGIN AUTOCAST TYPE andb_acheron_killmove
 Quest __temp = self as Quest
@@ -31,7 +31,7 @@ kmyQuest.Log("stage 1")
 EndFunction
 ;END FRAGMENT
 
-;BEGIN FRAGMENT Fragment_0
+;BEGIN FRAGMENT Fragment_10
 Function Fragment_10()
 ;BEGIN AUTOCAST TYPE andb_acheron_killmove
 Quest __temp = self as Quest
@@ -45,7 +45,7 @@ Reset()
 EndFunction
 ;END FRAGMENT
 
-;BEGIN FRAGMENT Fragment_0
+;BEGIN FRAGMENT Fragment_20
 Function Fragment_20()
 ;BEGIN AUTOCAST TYPE andb_acheron_killmove
 Quest __temp = self as Quest
