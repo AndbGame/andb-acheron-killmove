@@ -73,12 +73,12 @@ Function reInit()
 
 	If(!Acheron.HasOption(OptionSelfID))
     	; Register option
-    	int result = Acheron.AddOption(OptionSelfID, 		"$andb_acheron_killmove_self", "andb_acheron_killmove\\kill1.dds", 		"{\"Target\":{\"IS\":[\"NonEssential\"],\"NOT\":{\"Factions\":[\"0x84D1B|Skyrim.esm\"]}}}")
+    	int result = Acheron.AddOption(OptionSelfID, 			"$andb_acheron_killmove_self", 		"andb_acheron_killmove\\kill1.dds", 	"{\"Target\":{\"IS\":[\"NonEssential\"],\"NOT\":{\"Factions\":[\"0x84D1B|Skyrim.esm\"]}}}")
     	If (result > -1)
 			Log("Successfully registered '" + OptionSelfID + "'.")
 			If(!Acheron.HasOption(OptionFollowerID))
 				; Register option
-				result = Acheron.AddOption(OptionFollowerID, 	"$andb_acheron_killmove_follower", "andb_acheron_killmove\\kill2.dds", 	"{\"Target\":{\"IS\":[\"NonEssential\"],\"NOT\":{\"Factions\":[\"0x84D1B|Skyrim.esm\"]}}}")
+				result = Acheron.AddOption(OptionFollowerID, 	"$andb_acheron_killmove_follower", 	"andb_acheron_killmove\\kill2.dds", 	"{\"Target\":{\"IS\":[\"NonEssential\"],\"NOT\":{\"Factions\":[\"0x84D1B|Skyrim.esm\"]}}}")
 				If (result > -1)
 					Log("Successfully registered '" + OptionFollowerID + "'.")
 				Else
@@ -254,11 +254,9 @@ Idle Function RandomAnim(Idle[] firstKillmoves, Idle[] secondKillmoves, Int fCnt
 	Idle anim = None
 	If(fCnt >= 0)
 		anim = firstKillmoves[Utility.RandomInt(0,fCnt)]
-		Log("RandomAnim first: " + anim)
 	EndIf
 	If (anim == None && sCnt >= 0)
 		anim = secondKillmoves[Utility.RandomInt(0,sCnt)]
-		Log("RandomAnim second: " + anim)
 	EndIf
 	Return anim
 EndFunction
@@ -274,27 +272,18 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	Int Ticks
 	
     If(!IsPlayer)
-		;ActorUtil.AddPackageOverride(Source, blankPackage, 100, 1)
-        ;Source.EvaluatePackage()
-        ;Source.SetDontMove(True)
 		If(Target.GetDistance(Source) > 128)
 			Source.MoveTo(Target, 60 * Math.cos(Target.Z), 60 * Math.sin(Target.Z), 0.0, false)
-			Attempts = 10
+			Attempts = 5
 			While(attempts > 0)
 				Attempts = Attempts - 1
-				if (!Source.Is3DLoaded()) 
-					Log("!Is3DLoaded")
-					Utility.Wait(0.2)
-				Else
-					Utility.Wait(0.2)
+				Utility.Wait(0.5)
+				if (Source.Is3DLoaded()) 
 					Attempts = 0
 				endif
 			EndWhile
 		EndIf
 	EndIf
-	;ActorUtil.AddPackageOverride(Target, blankPackage, 100, 1)
-	;Target.EvaluatePackage()
-	;Target.SetDontMove(True)
 
 	Float zOffset = Source.GetHeadingAngle(Target)
 	Source.SetAngle(0.0, 0.0, Source.GetAngleZ() + zOffset)
@@ -310,7 +299,7 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 		Endif
 	Else
 		Float i = 4.0
-		While (!Source.IsWeaponDrawn() && (i > 0.0))
+		While (!Source.IsWeaponDrawn() && (i > 0.0)); NPC must DrawWeapon by Package flag, but need waiting when animation is ended
 			Utility.Wait(0.5)
 			i -= 0.5
 		EndWhile
@@ -352,7 +341,7 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 					Ticks -= 1
 					Utility.Wait(0.2)
 				EndWhile
-				Utility.Wait(1)
+				Utility.Wait(2) ; Target can be died befor animation ending, so waiting few sec more for avoid few glithes
 			EndIf
 			Log("KillMove animation success after " + (20-Attempts) + " attempts; Additional waiting Ticks: " + (50-Ticks))
 		Endif
@@ -369,15 +358,12 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	Endif
 
 	If(!IsPlayer)
-        ;ActorUtil.RemovePackageOverride(Source, blankPackage)
-        ;Source.EvaluatePackage()
-        ;Source.SetDontMove(False)
-		Debug.SendAnimationEvent(Source, "IdleForceDefaultState")
+		Debug.SendAnimationEvent(Source, "IdleForceDefaultState") ; looks that not need anymore... but just for case
 	EndIf
 
-	If !Target.IsDead() ; Last attempts for kill (If Success and not success animations)
+	If !Target.IsDead() ; Last attempts for kill. actors sometimes stubbornly do not want to die
 		Attempts = 10
-		While (!Target.IsDead() && Attempts > 0) ; Force kill
+		While (!Target.IsDead() && Attempts > 0)
 			Attempts -= 1
 			Target.Kill(Source)
 			Utility.Wait(0.5)
