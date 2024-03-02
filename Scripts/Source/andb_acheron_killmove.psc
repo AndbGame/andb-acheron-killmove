@@ -271,6 +271,7 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	EndIf
 
 	Int Attempts
+	Int Ticks
 	
     If(!IsPlayer)
 		;ActorUtil.AddPackageOverride(Source, blankPackage, 100, 1)
@@ -298,13 +299,13 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 
 	Float zOffset = Source.GetHeadingAngle(Target)
 	Source.SetAngle(0.0, 0.0, Source.GetAngleZ() + zOffset)
-	Utility.Wait(0.5)
+	Utility.Wait(0.2)
 	If IsPlayer && !Source.IsWeaponDrawn()
 		Source.DrawWeapon()
-		Float i = 3.0
+		Float i = 4.0
 		While (!Source.IsWeaponDrawn() && (i > 0.0))
-			Utility.Wait(0.5)
-			i -= 0.5
+			Utility.Wait(0.2)
+			i -= 0.2
 		EndWhile
 	Endif
 
@@ -336,32 +337,23 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	While (!Succes && (Attempts > 0))
 		Attempts -= 1
 		If Killmove && Source.PlayIdleWithTarget(Killmove, Target)
-			;Debug.Notification("KillMove: <" + Killmove.GetName() + ">")
+			Ticks = 50
 			Succes = True
 			If(!IsPlayer)
-				Utility.Wait(5)
+				While (!Target.IsDead() && Ticks > 0) ; Waiting confirmation that target is dead, otherwise, there is a chance that the animation is still playing
+					Ticks -= 1
+					Utility.Wait(0.2)
+				EndWhile
 			EndIf
-			Log("KillMove animation success after " + (50-Attempts) + " attempts")
+			Log("KillMove animation success after " + (20-Attempts) + " attempts; Additional waiting Ticks: " + (50-Ticks))
 		Endif
 	EndWhile
 	
 	If !Succes
-		;If(Killmove == None)
-		;	Debug.Notification("KillMove: <NONE> Failed.")
-		;Else
-		;	Debug.Notification("KillMove: <" + Killmove.GetName() + "> Failed."); .GetFormID()
-		;EndIf
 		Log("KillMove animation failed. Fallback")
 		Float HP = Target.GetActorValue("Health")
 		Target.DamageActorValue("Health", HP - 1.0)
 		Debug.SendAnimationEvent(Source, "pa_killmove2HM3Slash")
-		Utility.Wait(3.0)
-		Attempts = 10
-		While (!Target.IsDead() && Attempts > 0)
-			Attempts -= 1
-			Target.Kill(Source)
-			Utility.Wait(0.5)
-		EndWhile
 	Endif
 
 	If(!IsPlayer)
@@ -370,6 +362,14 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
         ;Source.SetDontMove(False)
 		Debug.SendAnimationEvent(Source, "IdleForceDefaultState")
 	EndIf
+
+	Utility.Wait(3.0)
+	Attempts = 10
+	While (!Target.IsDead() && Attempts > 0) ; Force kill
+		Attempts -= 1
+		Target.Kill(Source)
+		Utility.Wait(0.5)
+	EndWhile
 
 EndFunction
 
