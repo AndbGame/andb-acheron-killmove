@@ -286,28 +286,36 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 					Log("!Is3DLoaded")
 					Utility.Wait(0.2)
 				Else
+					Utility.Wait(0.2)
 					Attempts = 0
 				endif
 			EndWhile
 		EndIf
-		;Utility.Wait(3)
 	EndIf
-	
 	;ActorUtil.AddPackageOverride(Target, blankPackage, 100, 1)
 	;Target.EvaluatePackage()
 	;Target.SetDontMove(True)
 
 	Float zOffset = Source.GetHeadingAngle(Target)
 	Source.SetAngle(0.0, 0.0, Source.GetAngleZ() + zOffset)
-	Utility.Wait(0.2)
-	If IsPlayer && !Source.IsWeaponDrawn()
-		Source.DrawWeapon()
+	
+	If IsPlayer
+		If !Source.IsWeaponDrawn()
+			Source.DrawWeapon()
+			Float i = 4.0
+			While (!Source.IsWeaponDrawn() && (i > 0.0))
+				Utility.Wait(0.2)
+				i -= 0.2
+			EndWhile
+		Endif
+	Else
 		Float i = 4.0
 		While (!Source.IsWeaponDrawn() && (i > 0.0))
-			Utility.Wait(0.2)
-			i -= 0.2
+			Utility.Wait(0.5)
+			i -= 0.5
 		EndWhile
 	Endif
+
 
 	bool isBack
 	Float Fangle = (Target.GetHeadingAngle(Source))
@@ -344,6 +352,7 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 					Ticks -= 1
 					Utility.Wait(0.2)
 				EndWhile
+				Utility.Wait(1)
 			EndIf
 			Log("KillMove animation success after " + (20-Attempts) + " attempts; Additional waiting Ticks: " + (50-Ticks))
 		Endif
@@ -354,6 +363,9 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 		Float HP = Target.GetActorValue("Health")
 		Target.DamageActorValue("Health", HP - 1.0)
 		Debug.SendAnimationEvent(Source, "pa_killmove2HM3Slash")
+		If !Target.IsDead() ; Force kill
+			Target.Kill(Source)
+		Endif
 	Endif
 
 	If(!IsPlayer)
@@ -363,13 +375,14 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 		Debug.SendAnimationEvent(Source, "IdleForceDefaultState")
 	EndIf
 
-	Utility.Wait(3.0)
-	Attempts = 10
-	While (!Target.IsDead() && Attempts > 0) ; Force kill
-		Attempts -= 1
-		Target.Kill(Source)
-		Utility.Wait(0.5)
-	EndWhile
+	If !Target.IsDead() ; Last attempts for kill (If Success and not success animations)
+		Attempts = 10
+		While (!Target.IsDead() && Attempts > 0) ; Force kill
+			Attempts -= 1
+			Target.Kill(Source)
+			Utility.Wait(0.5)
+		EndWhile
+	EndIf
 
 EndFunction
 
