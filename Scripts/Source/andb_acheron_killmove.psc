@@ -160,8 +160,8 @@ Idle Function getKillMoveIdle(Int LWeaponType, Int RWeaponType, Idle[] Exclude, 
 			fCnt += 1
 			fKillmoves[fCnt] =  (Game.GetFormFromFile(0xF469F, "Skyrim.esm") As Idle); pa_KillMoveDualWieldA - paired_1hmkillmovedualwielda.hkx
 			fCnt += 1
-			fKillmoves[fCnt] = (Game.GetFormFromFile(0xF4679, "Skyrim.esm") As Idle); pa_1HMSneakKillBackA - paired_1hmsneakkillbacka.hkx
-			fCnt += 1
+			bKillmoves[bCnt] = (Game.GetFormFromFile(0xF4679, "Skyrim.esm") As Idle); pa_1HMSneakKillBackA - paired_1hmsneakkillbacka.hkx
+			bCnt += 1
 			fKillmoves[fCnt] = (Game.GetFormFromFile(0x55709, "Skyrim.esm") As Idle); pa_KillMoveI - Paired_1HMKillMoveI.hkx
 			fCnt += 1
 			bKillmoves[bCnt] = (Game.GetFormFromFile(0xF465A, "Skyrim.esm") As Idle) ; pa_1HMKillMoveBackStab - Paired_1HMKillMoveBackStab.hkx
