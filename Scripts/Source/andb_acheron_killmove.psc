@@ -20,6 +20,8 @@ Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)
 		ActorBase VicActorBase = akTarget.GetLeveledActorBase()
 		If (!VicActorBase.IsEssential() && !VicActorBase.IsProtected())
 			KillMove(akTarget, Source, true)
+		Else
+			Debug.Notification("$andb_acheron_killmove_essential")
 		EndIf
 	EndIf
 
@@ -34,6 +36,7 @@ Event OnHunterPrideSelect(int aiOptionID, Actor akTarget)
 		EndIf
 		ActorBase VicActorBase = akTarget.GetLeveledActorBase()
 		If (VicActorBase.IsEssential() || VicActorBase.IsProtected())
+			Debug.Notification("$andb_acheron_killmove_essential")
 			return
 		EndIf
 
@@ -319,55 +322,64 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 
 	;Utility.Wait(1)
 	Idle[] Exclude = new Idle[5]
+	int shuffleAnimationAttempts = 5
 	Bool Succes = False
 	Attempts = 20
 
-	Idle Killmove = getKillMoveIdle(LWeaponType, RWeaponType, Exclude, isBack)
+	While (!Succes && (shuffleAnimationAttempts > 0))
+		shuffleAnimationAttempts -= 1
+		Idle Killmove = getKillMoveIdle(LWeaponType, RWeaponType, Exclude, isBack)
 
-	If(testPIdle != "")
-		Killmove = (Game.GetFormFromFile(HexStrToInt(testPIdle), "Skyrim.esm") As Idle)
-		testPIdle = ""
-	EndIf
+		If(testPIdle != "")
+			Killmove = (Game.GetFormFromFile(HexStrToInt(testPIdle), "Skyrim.esm") As Idle)
+			testPIdle = ""
+		EndIf
 
-	Log("Kill Target: " + Target + "; Source: " + Source + "(Lw-Rw: " + LWeaponType + "-" + RWeaponType + ")" + "; Angle: " + Fangle + "; isBack: " + isBack + "; anim: " + Killmove)
-	
-	While (!Succes && (Attempts > 0))
-		Attempts -= 1
-		If Killmove && Source.PlayIdleWithTarget(Killmove, Target)
-			Ticks = 50
-			Succes = True
-			If(!IsPlayer)
-				While (!Target.IsDead() && Ticks > 0) ; Waiting confirmation that target is dead, otherwise, there is a chance that the animation is still playing
-					Ticks -= 1
-					Utility.Wait(0.2)
-				EndWhile
-				Utility.Wait(2) ; Target can be died befor animation ending, so waiting few sec more for avoid few glithes
-			EndIf
-			Log("KillMove animation success after " + (20-Attempts) + " attempts; Additional waiting Ticks: " + (50-Ticks))
-		Endif
+		Log("Kill Target: " + Target + "; Source: " + Source + "(Lw-Rw: " + LWeaponType + "-" + RWeaponType + ")" + "; Angle: " + Fangle + "; isBack: " + isBack + "; anim: " + Killmove)
+		;Attempts = 0
+		While (!Succes && (Attempts > 0))
+			Attempts -= 1
+			If Killmove && Source.PlayIdleWithTarget(Killmove, Target)
+				Ticks = 50
+				Succes = True
+				If(!IsPlayer)
+					While (!Target.IsDead() && Ticks > 0) ; Waiting confirmation that target is dead, otherwise, there is a chance that the animation is still playing
+						Ticks -= 1
+						Utility.Wait(0.2)
+					EndWhile
+					Utility.Wait(2) ; Target can be died befor animation ending, so waiting few sec more for avoid few glithes
+				EndIf
+				Log("KillMove animation success after " + (20-Attempts) + " attempts; Additional waiting Ticks: " + (50-Ticks))
+			Endif
+		EndWhile
+		
+		If !Succes
+			Log("KillMove animation failed after " + (20-Attempts) + " attempts")
+		EndIf
 	EndWhile
 	
 	If !Succes
-		Log("KillMove animation failed. Fallback")
+		Log("Fallback KillMove")
 		Float HP = Target.GetActorValue("Health")
-		Target.DamageActorValue("Health", HP - 1.0)
-		Debug.SendAnimationEvent(Source, "pa_killmove2HM3Slash")
-		If !Target.IsDead() ; Force kill
-			Target.Kill(Source)
-		Endif
+		Target.DamageActorValue("Health", HP - 1.0);
+		If(IsPlayer)
+			Debug.SendAnimationEvent(Source, "pa_killmove2HM3Slash")
+		Else
+			; TODO
+		EndIf
 	Endif
 
-	If(!IsPlayer)
-		Debug.SendAnimationEvent(Source, "IdleForceDefaultState") ; looks that not need anymore... but just for case
-	EndIf
-
-	If !Target.IsDead() ; Last attempts for kill. actors sometimes stubbornly do not want to die
+	If !Target.IsDead() ; Force kill
 		Attempts = 10
 		While (!Target.IsDead() && Attempts > 0)
 			Attempts -= 1
 			Target.Kill(Source)
 			Utility.Wait(0.5)
 		EndWhile
+	EndIf
+
+	If(!IsPlayer)
+		Debug.SendAnimationEvent(Source, "IdleForceDefaultState") ; looks that not need anymore... but just for case
 	EndIf
 
 EndFunction
