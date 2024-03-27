@@ -163,6 +163,7 @@ Idle Function getKillMoveIdle(Int LWeaponType, Int RWeaponType, Idle[] Exclude, 
 			fCnt += 1
 			fKillmoves[fCnt] =  (Game.GetFormFromFile(0xF469F, "Skyrim.esm") As Idle); pa_KillMoveDualWieldA - paired_1hmkillmovedualwielda.hkx
 			fCnt += 1
+			; bad - sneak
 			bKillmoves[bCnt] = (Game.GetFormFromFile(0xF4679, "Skyrim.esm") As Idle); pa_1HMSneakKillBackA - paired_1hmsneakkillbacka.hkx
 			bCnt += 1
 			fKillmoves[fCnt] = (Game.GetFormFromFile(0x55709, "Skyrim.esm") As Idle); pa_KillMoveI - Paired_1HMKillMoveI.hkx
@@ -233,6 +234,7 @@ Idle Function getKillMoveIdle(Int LWeaponType, Int RWeaponType, Idle[] Exclude, 
 		
 	EndIf
 	;any 
+	; bad - long distance
 	fKillmoves[fCnt] = (Game.GetFormFromFile(0x108A45, "Skyrim.esm") As Idle); pa_KillMoveJ - Paired_1HMKillMoveJ.hkx
 	fCnt += 1
 
@@ -326,12 +328,18 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 	Bool Succes = False
 	Attempts = 20
 
+	If SKSE.GetPluginVersion("Precision") >= 2000000
+		Precision_Utility.ToggleDisableActor(Source, true)
+		Precision_Utility.ToggleDisableActor(Target, true)
+	endIf
+
 	While (!Succes && (shuffleAnimationAttempts > 0))
 		shuffleAnimationAttempts -= 1
 		Idle Killmove = getKillMoveIdle(LWeaponType, RWeaponType, Exclude, isBack)
 
+		;testPIdle = "000B07"
 		If(testPIdle != "")
-			Killmove = (Game.GetFormFromFile(HexStrToInt(testPIdle), "Skyrim.esm") As Idle)
+			Killmove = (Game.GetFormFromFile(HexStrToInt(testPIdle), "andb_acheron_killmove.esp") As Idle)
 			testPIdle = ""
 		EndIf
 
@@ -365,9 +373,15 @@ Function KillMove(Actor Target, Actor Source, Bool IsPlayer)
 		If(IsPlayer)
 			Debug.SendAnimationEvent(Source, "pa_killmove2HM3Slash")
 		Else
-			; TODO
+			Source.PlayIdleWithTarget((Game.GetFormFromFile(0x828, "Update.esm") As Idle), Target)
 		EndIf
 	Endif
+
+	
+	If SKSE.GetPluginVersion("Precision") >= 2000000
+		Precision_Utility.ToggleDisableActor(Source, false)
+		Precision_Utility.ToggleDisableActor(Target, false)
+	endIf
 
 	If !Target.IsDead() ; Force kill
 		Attempts = 10
